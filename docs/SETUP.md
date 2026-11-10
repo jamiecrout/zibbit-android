@@ -104,8 +104,8 @@ Do not forward port 8080 straight to the internet.
 ## 4. Optional extras
 
 - **Android app:** download `Zibbit.apk` from the public
-  [zibbit-android](https://github.com/jamiecrout/zibbit-android) repository. It keeps a list of servers and
-  opens the one you choose. The same page also works in any browser and can be added to a phone's home screen.
+  [zibbit-android](https://github.com/jamiecrout/zibbit-android) repository. It remembers the servers you have used
+  and opens the last one on every launch; switch with **Settings > Change server**. The same page also works in any browser and can be added to a phone's home screen.
 - **VPN for provider traffic:** do it at your router or firewall, against the container's address. The app
   has no VPN logic of its own. If your provider only works from certain countries, this is the place to solve it.
 
@@ -114,6 +114,10 @@ Do not forward port 8080 straight to the internet.
 ```
 docker pull ghcr.io/jamiecrout/zibbit:latest
 ```
+
+`latest` is the newest release. To stay on one line of releases, use a version tag instead: `:2.1` takes fixes
+but not new features, and `:2.1.0` never changes. `:edge` follows work that is not released yet. The version you are running is shown at the bottom of
+Settings.
 
 Then recreate the container (`docker compose up -d`, or the update button in the Unraid Docker tab). Your
 `/config` folder carries over. Moving from the earlier single-file version is covered in `docs/UPGRADING.md`.

@@ -1,6 +1,6 @@
 # Zibbit
 
-Zibbit is a self-hosted, touch-first streaming player that you run on your own server. It gives you a real guide grid, your own channel groups and favorites, and one place to manage several sources. It works in any browser, and this repository has the Android app.
+Zibbit is a self-hosted, touch-first streaming player that you run on your own server. It gives you a real guide grid, your own channel groups and favorites, and one place to manage several sources: IPTV playlists and Xtream providers, HDHomeRun antenna tuners, and (experimental) Tablo 4th Gen. It works in any browser, and this repository has the Android app.
 
 It carries no channels, playlists or logins. You bring your own sources and are responsible for having the right to use them.
 
@@ -30,6 +30,7 @@ Step-by-step guides, including Docker Compose and Unraid:
 - [Using it](docs/USING.md): a tour of the screens for the people who watch
 - [Configuration](docs/CONFIGURATION.md): roles, settings, environment variables, admin commands
 - [Upgrading](docs/UPGRADING.md): moving from the earlier single-file version
+- [What's new](#whats-new)
 
 ## 2. Watch
 
@@ -37,14 +38,24 @@ Step-by-step guides, including Docker Compose and Unraid:
 
 **With the Android app:** [Zibbit.apk](Zibbit.apk) (Android 7.0 or newer).
 
-SHA-256: `20ff334ec73884d009e520b00b6f5ef4cab698dcb70d847e7e10436d854fd28f`
+SHA-256: `7944c091cafd916b3a58c357c5209a808833e1971fba6e8d8c05ee7a376f83cc`
 Signing certificate SHA-256: `a7a9fd99926ce22ffa3d8325fcd254c0b907b3bc9069bb98de2fed6c39b3464a`
 
 1. Download `Zibbit.apk` on the phone or tablet.
 2. Open it. Android will ask you to allow installs from that app (your browser or file manager). Allow it for this install.
-3. Open **Zibbit**. On first launch it asks for the address of your server, for example `zibbit.example.com` or `192.168.1.20:8080`, then saves it to a list so you can switch servers later.
+3. Open **Zibbit**. On first launch it asks for the address of your server, for example `zibbit.example.com` or `192.168.1.20:8080`, then saves it. From then on it opens the last server straight away. To switch servers, open Settings in the page and choose **Change server** (needs server 2.1 or newer); Back returns to where you were.
 
 Plain `http` addresses are only accepted for home-network hosts (192.168.x.x, 10.x.x.x, 172.16-31.x.x and local names). Anything reached over the internet needs `https`; see the Setup guide.
+
+## What's new
+
+**Server 2.1.0 and Android app 2.1** (November 2026)
+
+- HDHomeRun antenna tuners as a source, with the guide filled in automatically if you have SiliconDust's guide subscription.
+- Tablo 4th Gen as a source (experimental), with its own guide.
+- The server version shows at the bottom of Settings, and image tags now follow releases: `latest`, `2.1` and `2.1.0`.
+- The Android app opens your last server on launch; switching is under Settings > Change server.
+- The player says why the browser refused to start playback instead of staying on "Ready".
 
 ## Notes
 

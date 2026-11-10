@@ -41,11 +41,12 @@ else.
 ```
 { "providers": [
   { "id": "primary", "name": "Primary", "type": "xtream", "url": "http://host:8080", "username": "...", "password": "...", "format": "m3u8" },
-  { "id": "playlist", "name": "My playlist", "type": "m3u", "url": "https://.../list.m3u", "format": "m3u8" }
+  { "id": "playlist", "name": "My playlist", "type": "m3u", "url": "https://.../list.m3u", "format": "m3u8" },
+  { "id": "antenna", "name": "Antenna", "type": "hdhr", "url": "http://192.168.1.50" }
 ] }
 ```
 
-- `type` is `xtream` (default, so v1 files work unchanged) or `m3u`.
+- `type` is `xtream` (default, so v1 files work unchanged), `m3u`, `hdhr` (an HDHomeRun tuner, see below) or `tablo` (a Tablo 4th Gen, experimental, see below).
 - `format` is `m3u8` (HLS) or `ts`. For an M3U playlist, *Test connection* looks at the stream addresses and
   picks the right one.
 - `id` is made from the name when you add a provider and never changes afterwards.
@@ -76,6 +77,55 @@ else.
 All of these apply immediately after saving. `TRUST_IP_HEADER` in the environment overrides `trustIpHeader`
 (and the page shows it as locked).
 
+## Tablo 4th Gen (experimental)
+
+**Experimental.** Sign-in, the channel list and playback have been confirmed on one real Tablo 4th Gen; the guide
+and ending streams cleanly have only been tried against a pretend Tablo so far. It was written from community
+descriptions of how the Tablo app talks to its cloud and device (the `tablo-api` library and TabloView's API
+notes). Treat it as a preview. Tablo publishes no API, so Tablo can change or block this at any time. Only 4th Gen devices
+are covered.
+
+Add a provider of type *Tablo 4th Gen*, with your Tablo account email and password. The address is optional: leave
+it blank to use the one your account reports, or enter the Tablo's address on your network (for example
+`192.168.1.60`) if that doesn't work. Zibbit signs in to the Tablo cloud, lists the antenna channels in one group
+called *Antenna*, then asks the device on your network to start each channel you watch. Streaming-app (OTT)
+channels are left out.
+
+- **Your Tablo password is stored in `providers.json`** on the server, like any other provider login, because
+  Zibbit signs in again as needed. It is never sent to the browser.
+- **The server must be able to reach the Tablo** on your network (port 8885, plus the port it streams on).
+- **Video is converted while someone watches**, the same way as for an HDHomeRun, so ffmpeg is needed. People on
+  the same channel share one stream.
+- **Guide:** the program listings come from the Tablo's own guide, with no XMLTV address needed. They are read from
+  the Tablo cloud's daily guide grid, or, if that has none of your channels, from the Tablo itself in slow batches
+  (it refuses connections for about a minute after a burst). Any XMLTV addresses you add are read after it.
+- Stopping a channel tells the Tablo the session is over, so its tuner is freed straight away.
+- The two request-signing keys come from the Tablo app (as listed by `tablo-api`). If Tablo changes them, set
+  `TABLO_HASH_KEY` and `TABLO_DEVICE_KEY`.
+- The number of tuners isn't read from the device, so nothing stops you starting more streams than it has; the
+  Tablo then answers "all tuners are busy". `STREAM_LIMIT` can cap it.
+
+## HDHomeRun tuners
+
+An HDHomeRun is added as a provider of type *HDHomeRun tuner (antenna)*; the address is all it needs (for example
+`192.168.1.50`). Zibbit reads the device's channel list and puts every channel in one group called *Antenna*,
+named with its number (`3.1 WLBT-DT`). Copy-protected cable channels are left out.
+
+- **The server must be able to reach the tuner.** If Zibbit runs on a separate network segment from the tuner,
+  allow that traffic (the tuner's web port, and port 5004 for video).
+- **Video is converted while someone watches.** Antenna video is MPEG-2 with AC3 audio, which browsers and
+  phones can't play, so ffmpeg turns each watched channel into H.264/AAC HLS (720p by default, see
+  `TRANSCODE_MAX_HEIGHT`). People on the same channel share one conversion, and it stops as soon as the last
+  person stops watching or closes the page. The image includes ffmpeg; running from source needs it installed.
+  Expect roughly a third of one processor core per watched channel at 720p, and a few seconds before video
+  starts.
+- **Tuners are the limit.** The stream limit for a tuner is its tuner count, counted per channel (two people on
+  one channel use one tuner). If something else is using the tuners, playback fails with "all tuners are busy".
+- **Guide.** If you have SiliconDust's guide subscription, the listings are read from their service automatically (using
+  the tuner's own key, so nothing to enter) and channels are matched by number. Zibbit then needs internet access to
+  `api.hdhomerun.com`. Without the subscription the tuner has no program data; add an XMLTV guide address on the
+  provider instead. Any address you add is read after the tuner's own guide.
+
 ## How the guide is matched
 
 Guide sources are XMLTV files listed per provider. A channel uses the first source that has a programme on
@@ -105,6 +155,9 @@ logs guide addresses. Per-channel misses are not logged; use the Edit-mode guide
 | `EPG_REFRESH_HOURS`, `TRIM_FROM_NAMES`, `STRIP_SUPERSCRIPTS` | | Used only when the matching key is absent from `settings.json`. |
 | `STREAM_LIMIT` | 0 | A number caps simultaneous streams per provider; `auto` uses the Xtream account's own limit (Xtream only). |
 | `LIMIT_CACHE_MS` | 60000 | |
+| `TRANSCODE_MAX_HEIGHT` | 720 | HDHomeRun channels are converted to at most this many lines of video (0 keeps the original size, which needs more processor time). |
+| `TRANSCODE_DIR` | system temp folder | Where the short-lived video segments are written. Nothing there is kept. |
+| `FFMPEG_PATH` | `ffmpeg` | Only needed if ffmpeg is not on the path (the image includes it). |
 
 ## Command line
 
