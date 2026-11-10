@@ -45,8 +45,6 @@ Signing certificate SHA-256: `a7a9fd99926ce22ffa3d8325fcd254c0b907b3bc9069bb98de
 2. Open it. Android will ask you to allow installs from that app (your browser or file manager). Allow it for this install.
 3. Open **Zibbit**. On first launch it asks for the address of your server, for example `zibbit.example.com` or `192.168.1.20:8080`, then saves it. From then on it opens the last server straight away. To switch servers, open Settings in the page and choose **Change server** (needs server 2.1 or newer); Back returns to where you were.
 
-**On a Fire TV or Android TV, with Downloader:** install the free Downloader app, allow it to install unknown apps, then enter the code **5635714** (or the address `http://aftv.news/5635714`) and install. This is the same `Zibbit.apk` as above. The app is built for touch screens and has not been tested on a TV yet, so using it with a remote may be awkward; proper TV remote support is planned.
-
 Plain `http` addresses are only accepted for home-network hosts (192.168.x.x, 10.x.x.x, 172.16-31.x.x and local names). Anything reached over the internet needs `https`; see the Setup guide.
 
 ## What's new
