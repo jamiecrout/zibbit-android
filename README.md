@@ -45,6 +45,8 @@ Signing certificate SHA-256: `a7a9fd99926ce22ffa3d8325fcd254c0b907b3bc9069bb98de
 2. Open it. Android will ask you to allow installs from that app (your browser or file manager). Allow it for this install.
 3. Open **Zibbit**. On first launch it asks for the address of your server, for example `zibbit.example.com` or `192.168.1.20:8080`, then saves it. From then on it opens the last server straight away. To switch servers, open Settings in the page and choose **Change server** (needs server 2.1 or newer); Back returns to where you were.
 
+**Installing with Downloader:** if you use the Downloader app, enter the code **5635714** (or the address `http://aftv.news/5635714`) to fetch the same `Zibbit.apk`. Downloader needs permission to install unknown apps, the same as in step 2.
+
 Plain `http` addresses are only accepted for home-network hosts (192.168.x.x, 10.x.x.x, 172.16-31.x.x and local names). Anything reached over the internet needs `https`; see the Setup guide.
 
 ## What's new
