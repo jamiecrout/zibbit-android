@@ -78,4 +78,4 @@ Zibbit started as a live-TV player. Now it also rewinds and records channels, pl
 ## Notes
 
 - Unofficial and provided as is, with no warranty. For personal use.
-- The server's source code is not published yet.
+- The server's source code is at [github.com/jamiecrout/zibbit](https://github.com/jamiecrout/zibbit) (MIT license).
