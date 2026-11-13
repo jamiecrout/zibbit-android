@@ -6,6 +6,7 @@ A short tour for the people who watch. Admins also see **Admin settings** under 
 
 Your name and password. If an admin gave you a temporary password, you are asked to choose your own first.
 Change it any time from the gear icon > **Change password**.
+Lost a device? **Sign out everywhere** in Settings ends every other sign-in for your account.
 
 ## Finding channels
 
@@ -40,6 +41,42 @@ Only you see these changes, and they follow you to every device you sign in on. 
 Tap a channel to play. **Stop** ends the stream and frees your provider connection. If the provider's
 connection limit is reached you are told who is watching and can choose **Watch anyway**. **Stop all
 streams now** in Settings ends everything the server is pulling.
+
+## Rewind and Go live
+
+While you watch a live channel you can wind back, up to an hour by default (an admin can lower it). Press **Go live** to jump
+back to now. Everyone watching the same channel shares one buffer, and it exists only while someone is watching.
+
+## Recording live TV
+
+Record the show you are watching from the rewind buffer, as far back as it reaches, or from now until you stop. Recordings are
+MP4 files, listed under Recordings, and play like a movie with a resume point. A recording stops at the longest length an
+admin allows or when the disk is nearly full. Nothing is deleted automatically; use **Delete** on a recording you are done with.
+
+## Movies & Shows
+
+Browse a provider's movies and series, search, and pick **Continue watching** to resume. Under Settings you can choose which
+movie and show categories you want. Until you choose, every category shows.
+
+## Downloads
+
+Press **Download** on a movie, or the download button on an episode or a whole season, to copy it from the provider to the
+server's storage folder. Downloads run one at a time per provider and continue after a break. Find them under **Downloads and
+recordings**, where you can play, delete, or save one to the device you are on.
+
+## Content lock
+
+If an admin has turned the lock on, groups it covers show with a lock icon and their channels and titles stay hidden until you
+enter your four-digit PIN. It locks again after a period with no activity, when you sign out, or when you switch profile.
+
+## All channels
+
+The top of the group menu is **All channels**: every channel from your ticked groups in one list. Hiding and reordering are
+still done inside a single group.
+
+## Install as an app
+
+On an iPhone or iPad, use Add to Home Screen. In Chrome, use Install app. Zibbit then opens full screen like an app.
 
 ## Admins: fixing a missing guide
 

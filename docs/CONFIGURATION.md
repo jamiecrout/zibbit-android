@@ -29,8 +29,8 @@ else.
 | File | Purpose |
 | --- | --- |
 | `providers.json` | Provider list. Written by the Providers screen. |
-| `users.json` | People: name, role, scrypt hash, state file, `mustChange`. Written by the People screen and the commands below. |
-| `settings.json` | Names, guide and security settings. Written by the Names and Security screens and by guide addresses on a provider. Unknown keys are kept. |
+| `users.json` | People: name, role, scrypt hash, state file, `mustChange`. Written by the People section of Security and the commands below. |
+| `settings.json` | Channel, guide, playback, lock and security settings. Written by the Channels & guide, Playback, Locks and Security screens and by guide addresses on a provider. Unknown keys are kept. |
 | `secret.key` | Key that seals URLs sent to the browser and signs sessions. Created if missing. Keep it when restoring. |
 | `epgmap.json` | Stream-to-guide-id overrides: `{ "<provider id>": { "<stream id>": "<guide id>" } }`. Written by the guide screen in Edit mode (admins tap a channel's name) and by `epgimport`. |
 | `state-<person>.json` | That person's chosen groups (in their order), favorites, hidden channels, channel order per group, and last channel. |
@@ -148,15 +148,17 @@ logs guide addresses. Per-channel misses are not logged; use the Edit-mode guide
 | --- | --- | --- |
 | `PORT` | 8080 | |
 | `CONFIG_DIR` | `./config` (`/config` in the image) | |
-| `ADMIN_INITIAL_PASSWORD` | `admin` | Only used when the very first account is created. Must still be changed at first sign-in. |
+| `ADMIN_INITIAL_PASSWORD` | a random one, shown in the log | Only used when the very first account is created. Must still be changed at first sign-in. |
 | `APP_PASSWORD` | | Used the same way as `ADMIN_INITIAL_PASSWORD` if that is not set. |
 | `CATALOG_TTL_HOURS` | 6 | How long a provider's channel list is reused. |
 | `TRUST_IP_HEADER` | | Overrides `trustIpHeader`. |
+| `PUID`, `PGID` | owner of the config folder, or 1000 if that is root | The user and group the server runs as. It never runs as root unless you set `PUID=0`. On first start the config folder is handed to this user once, so files saved by earlier versions (as root) stay readable. On Unraid use `99` and `100`. |
+| `ALLOW_PRIVATE_UPSTREAM` | | Set to `1` (or `"allowPrivateUpstream": true` in `settings.json`) only if a provider really serves video from an address inside your own network and is not listed as a provider host. By default the server refuses stream, playlist and picture requests, and redirects, that land on a private, loopback or link-local address; the log says `refused a request to <host>` when that happens. |
 | `EPG_REFRESH_HOURS`, `TRIM_FROM_NAMES`, `STRIP_SUPERSCRIPTS` | | Used only when the matching key is absent from `settings.json`. |
 | `STREAM_LIMIT` | 0 | A number caps simultaneous streams per provider; `auto` uses the Xtream account's own limit (Xtream only). |
 | `LIMIT_CACHE_MS` | 60000 | |
 | `TRANSCODE_MAX_HEIGHT` | 720 | HDHomeRun channels are converted to at most this many lines of video (0 keeps the original size, which needs more processor time). |
-| `TRANSCODE_DIR` | system temp folder | Where the short-lived video segments are written. Nothing there is kept. |
+| `TRANSCODE_DIR`, `REWIND_DIR` | `/rewind` when that folder exists, else the system temp folder | Where the converted video and the rewind buffer are written (inside a `zibbit-hls` folder, which is emptied at every start). Nothing there is kept. Map a real folder to `/rewind` so a long buffer doesn't fill the container's own disk. |
 | `FFMPEG_PATH` | `ffmpeg` | Only needed if ffmpeg is not on the path (the image includes it). |
 
 ## Command line
@@ -189,8 +191,90 @@ docker exec -it zibbit node server.js epgimport <provider id> <playlist file>
 - **The address the app sees.** Lockouts and the address rule use the visitor address the app is given. Behind
   a reverse proxy, name a header the proxy sets itself and overwrites on every request (for example `cf-connecting-ip` behind Cloudflare). Don't expose the container's port directly if you rely on
   these, because a direct client could send its own header.
-- **Default password.** Change it at first sign-in is enforced, but the account exists until then. Set
-  `ADMIN_INITIAL_PASSWORD` or keep the app off the internet until you have signed in once.
-- **Secrets at rest.** `providers.json`, `users.json`, `settings.json` and `secret.key` are written with
-  owner-only permissions. Provider passwords are stored in `providers.json` (the app needs them to stream),
-  so protect the config directory and its backups.
+- **First password.** The first account's password is random and appears only in the container log; changing it at
+  first sign-in is enforced. Still, sign in once before exposing the app to the internet.
+- **Sessions.** A sign-in lasts 180 days on that device. **Settings > Sign out everywhere** ends every other sign-in for
+  that person, paired screens included, and keeps the one you are using. Changing a password does the same.
+- **Secrets at rest.** `providers.json`, `users.json`, `settings.json` and the key files are written with
+  owner-only permissions. Account passwords and content-lock PINs are stored only as hashes. Provider logins (usernames,
+  passwords, and playlist addresses that carry a token) and guide addresses are stored encrypted, so a copy of
+  `providers.json` or `settings.json` on its own shows nothing usable; see [Recovery key and backups](#recovery-key-and-backups).
+  The server still needs the key to read them, so anyone who can read both the key and the files can open them.
+
+
+## Recovery key and backups
+
+Provider logins and guide addresses are encrypted in `providers.json` and `settings.json` (AES-256-GCM, shown as `enc:v1:…`).
+One **recovery key** opens them, and the same key opens a backup. Admins can read it under **Admin settings > Security >
+Recovery key and backup** (after typing their password again). Copy it somewhere safe, such as a password manager.
+
+- **Where the key lives.** By default Zibbit makes a key on first start and keeps it in `recovery.key` in the config folder.
+  That protects against a stray copy of `providers.json` or `settings.json`, but not against a copy of the whole folder.
+  To keep the key off the server's disk, set the **`ZIBBIT_KEY`** environment variable to the key (Unraid: add a Variable
+  to the container; Compose: an `environment:` entry) and restart. Zibbit then removes `recovery.key`. Any text of at least
+  16 characters works, and capitals, spaces and dashes don't matter. Keep the value: if it is lost and `recovery.key` is
+  gone, saved logins can't be read, and you re-enter them or restore a backup.
+- **Changing the key.** Set `ZIBBIT_KEY` to a new value while `recovery.key` still exists and everything is re-encrypted
+  with the new key at the next start. If the old key is already gone, the old logins can't be opened with a new one.
+- **Existing installs.** The first start of this version encrypts logins that were stored in plain text. A value typed into
+  the file by hand is still read, and is encrypted at the next start. If the key doesn't match, those providers are not
+  loaded and the log says why; the file is left as it is, so setting the right key brings them back.
+- **Backups.** Security > Recovery key and backup can save one encrypted file with the providers (logins included),
+  people, settings, guide links and everyone's groups and favorites. **Save to storage** puts it in `zibbit-backups` inside the
+  folder mapped to `/recordings` (name that path whatever you like in your container template, for example "Storage"),
+  **Download** gives you the file, and **Save a backup to storage every day** keeps the newest 14 by default (set it
+  from 1 to 60). Backups you save by hand are never removed. The file can only be opened with the key, which isn't in it.
+- **Restoring.** Choose a saved backup, or a downloaded file, and enter the recovery key of the server that made it and
+  your password. Restoring replaces providers, people, settings, guide links, groups and favorites, after saving what was
+  there as `zibbit-before-restore-…` (the last three are kept). A backup with no admin account is refused so nobody is
+  locked out, and a limit on which addresses may open Admin settings is left out if it would exclude yours. Logins are
+  encrypted again with the key of the server you restore onto. Recordings and downloads are not part of a backup; they
+  already live in the storage folder.
+
+## Rewinding live TV
+
+Live channels can be wound back. While anyone watches a channel, the server keeps a rolling buffer of it (one copy per
+channel, shared by everyone watching it, so the provider is still asked once) and the player gets a seek bar, with
+**Go live** to jump back to the edge. Nothing is kept for a channel nobody is watching: the buffer is deleted a couple of
+minutes after the last person leaves, and you can only rewind as far as the channel has been watched.
+
+- **Admin settings > Playback > Rewind live TV, at most:** off, 15 minutes, 30 minutes or 1 hour (the default).
+  Off sends channels straight from the provider as before.
+- **Each person chooses their own length** (Settings > Rewind live TV), never more than the admin allows. A shorter
+  choice really does free space: video older than the longest length anyone on that channel asked for is deleted.
+- **Disk budget** (same page, default 10 GB): all running buffers together stay under it, oldest video first, and the
+  server never lets the disk itself drop below about 1.5 GB free. Roughly: 1080p is 2 to 4 GB an hour, 4K 10 GB or more.
+- **Where it lives:** map a folder to `/rewind` (Docker) or set `REWIND_DIR`. Without one it uses the system temp folder,
+  which in a container is the container's own disk. Docker Compose: `- ./rewind:/rewind`. Unraid: Path, container
+  `/rewind`, host `/mnt/user/appdata/zibbit/rewind` (or a cache or scratch share).
+- **Cost:** channels that were passed straight through now go through ffmpeg (video and audio are copied, not
+  re-encoded, so it is light), and a channel takes a few seconds longer to start. If a channel can't be buffered it plays
+  directly, as before, and the server notes it in the log.
+- Needs ffmpeg (included in the image).
+
+## Recording live TV
+
+With rewind on, a channel can be recorded from its buffer, so a recording can start in the past: **Record this show**
+(from where the program began, as far back as the buffer reaches, until it ends plus three minutes), **Record from now**
+(until you stop it), or everything buffered. Recordings are MP4 files, kept in `/recordings/<profile>/recordings/` with a
+folder per profile. They are listed under **Recordings** and play like a movie, remembering where you stopped; Delete
+removes the file.
+
+- **Where it lives:** map a folder to `/recordings` (Docker) or set `RECORDINGS_DIR`. Recording is off until the folder exists
+  and is writable. Docker Compose: `- ./recordings:/recordings`. Unraid: Path, container `/recordings`, host a share.
+- **Admin settings > Playback > Longest recording** (6 hours by default, up to 24): a recording stops by itself after this.
+- **Stop recording when free space drops below** (20 GB by default): running recordings stop, and new ones won't start.
+- Recordings are never deleted automatically. A channel being recorded keeps its buffer running even with nobody watching,
+  which keeps using one provider stream.
+
+## Downloading movies and shows
+
+A movie, episode or whole season can be copied from the provider into the profile's own folder:
+`/recordings/<profile>/downloads/` (same `/recordings` folder as recordings). The file is kept exactly as the provider sends
+it, with no conversion, so it plays wherever streaming it already played. Names look like `Movie (2019).mkv` and
+`Show - S01E02 - Title.mkv`.
+
+- Only one download runs per provider at a time, so a download never uses more than one of the provider's streams. The rest
+  wait their turn. A download that breaks off resumes from where it stopped; a restart picks the unfinished ones back up.
+- Downloads stop when free space drops below the same floor as recordings (Admin settings > Playback).
+- Downloads are never deleted automatically. Delete removes the file, and cancelling removes what had come down.

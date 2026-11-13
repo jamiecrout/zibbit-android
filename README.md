@@ -22,14 +22,14 @@ docker run -d --name zibbit --restart unless-stopped \
 
 Use any folder in place of `/path/to/zibbit-config`. Your settings, sign-ins and favorites live there, so the container can be updated or recreated without losing them. The image runs on `amd64` and `arm64` (Raspberry Pi 4/5 included).
 
-Then open `http://<server-address>:8080`. The first sign-in is `admin` / `admin`, and you are asked to choose a new password straight away. Open **Settings > Admin settings** to add your own sources and the people who will watch.
+Then open `http://<server-address>:8080`. Sign in as **admin** with the temporary password the container prints in its log on first start (`docker logs zibbit`, or the log button in the Unraid Docker tab). You are asked to choose a new password straight away. Open **Settings > Admin settings** to add your own sources and the people who will watch.
 
 Step-by-step guides, including Docker Compose and Unraid:
 
 - [Setup](docs/SETUP.md): install, first sign-in, reaching it from other devices, updating
 - [Using it](docs/USING.md): a tour of the screens for the people who watch
 - [Configuration](docs/CONFIGURATION.md): roles, settings, environment variables, admin commands
-- [Upgrading](docs/UPGRADING.md): moving from the earlier single-file version
+- [Upgrading](docs/UPGRADING.md): moving from v1 or from 2.x
 - [What's new](#whats-new)
 
 ## 2. Watch
@@ -38,7 +38,7 @@ Step-by-step guides, including Docker Compose and Unraid:
 
 **With the Android app:** [Zibbit.apk](Zibbit.apk) (Android 7.0 or newer).
 
-SHA-256: `7944c091cafd916b3a58c357c5209a808833e1971fba6e8d8c05ee7a376f83cc`
+SHA-256: `b45199131cdca157d5bef99c90946a6134fbbbde9debebf27352b58537415771`
 Signing certificate SHA-256: `a7a9fd99926ce22ffa3d8325fcd254c0b907b3bc9069bb98de2fed6c39b3464a`
 
 1. Download `Zibbit.apk` on the phone or tablet.
@@ -47,9 +47,25 @@ Signing certificate SHA-256: `a7a9fd99926ce22ffa3d8325fcd254c0b907b3bc9069bb98de
 
 **Installing with Downloader:** if you use the Downloader app, enter the code **5635714** (or the address `http://aftv.news/5635714`) to fetch the same `Zibbit.apk`. Downloader needs permission to install unknown apps, the same as in step 2.
 
+On a big screen the app switches to big-screen mode: large type, d-pad navigation, and a menu on long-press. It signs in with a code you approve on your phone.
+
 Plain `http` addresses are only accepted for home-network hosts (192.168.x.x, 10.x.x.x, 172.16-31.x.x and local names). Anything reached over the internet needs `https`; see the Setup guide.
 
 ## What's new
+
+**Server 3.0.0 and Android app 3.0** (November 2026)
+
+Zibbit started as a live-TV player. Now it also rewinds and records channels, plays your provider's movies and shows, and runs on your phone, tablet and big screen.
+
+- Rewind live TV up to an hour and press Go live to return. Record a show from the rewind buffer, or from now until you stop.
+- Movies & Shows: browse a provider's movies and series, search, choose your categories, and Continue watching. Download a movie, episode or season to your own folder.
+- A PIN-based content lock for groups you want out of sight. Admin settings > Locks.
+- Provider logins and guide addresses are now stored encrypted. Admins get a recovery key and encrypted server backups under Security.
+- Sign out everywhere, All channels, E-AC-3 audio converted for browsers that can't play it, Refresh channel list, and install as an app from the browser.
+- Android app: big-screen mode, sign in with a code from your phone, and the app can update itself.
+- Numerous security enhancements and bug fixes since 2.x.
+
+**Upgrading from 2.x:** back up your config folder first. Once 3.0 has started, saved logins are encrypted and 2.x can't read them. See [Upgrading](docs/UPGRADING.md).
 
 **Server 2.1.0 and Android app 2.1** (November 2026)
 
